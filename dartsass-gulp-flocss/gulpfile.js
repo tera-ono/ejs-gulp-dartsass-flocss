@@ -7,13 +7,15 @@ const rename = require("gulp-rename");
 const srcPath = {
     css: 'src/sass/**/*.scss',
     img: 'src/images/**/*',
-    html: './**/*.html'
+    html: './**/*.html',
+    ejs: 'ejs/**/!(_)*.ejs',
 }
 
 // 吐き出し先（なければ生成される）
 const destPath = {
     css: 'css/',
-    img: 'images/'
+    img: 'images/',
+    ejs: './'
 }
 
 // ブラウザーシンク（リアルタイムでブラウザに反映させる処理）
@@ -75,6 +77,15 @@ const cssSass = () => {
         }))
 }
 
+// gulp-ejs
+const ejs  = require('gulp-ejs');
+const compileHtml = () => {
+  return src(srcPath.ejs) // 変換元を指定。!(_)はコンポーネントファイル（_header.ejsなど）以外の意味。
+  .pipe( ejs( {title: 'gulp-ejs'} ) ) // ejsコンパイル実行 {}内で値を渡すことが可能
+  .pipe(rename( { extname: ".html" } )) // コンパイルファイルの拡張子をhtmlに変更
+  .pipe( dest(destPath.ejs) ); // 出力先の指定
+}
+
 // 画像圧縮 変数宣言
 const imagemin = require("gulp-imagemin"); //画像圧縮
 const imageminMozjpeg = require("imagemin-mozjpeg"); //jpg圧縮
@@ -102,6 +113,7 @@ const watchFiles = () => {
     watch(srcPath.css, series(cssSass, browserSyncReload)) // src/sassフォルダ内の変更があったらcssにコンパイルして自動リロード
     watch(srcPath.img, series(imgImagemin, browserSyncReload)) // src/imagesフォルダ内の変更があったら画像圧縮して自動リロード
     watch(srcPath.html, series(browserSyncReload)) //htmlファイルに変更があったら自動リロード
+    watch(srcPath.ejs, series(compileHtml,browserSyncReload)) //htmlファイルに変更があったら自動リロード
 }
 
 // 画像だけ削除
@@ -141,7 +153,7 @@ const clean = (done) => {
  */
 /* --- watchFilesメソッドで使われている"gulp.watch"メソッドは1度呼び出すと Gulp がずっと実行された状態になります。 なので、監視ファイルが変更されるたびにwatchFilesメソッドが実行され自動でリロードされる仕組み--- */
 
-exports.default = series(series(clean, cssSass, imgImagemin), parallel(watchFiles, browserSyncFunc));
+exports.default = series(series(clean, cssSass, compileHtml, imgImagemin), parallel(watchFiles, browserSyncFunc));
 
 //series:順番に処理 series(clean, cssSass, imgImagemin)を処理してからparallel(watchFiles, browserSyncFunc))を開始してparallel内のwatchFiles, browserSyncFuncを同時進行で処理する
 
