@@ -3,6 +3,7 @@ const { src, dest, watch, series, parallel } = require("gulp");
 // 共通
 const rename = require("gulp-rename");
 const replace = require("gulp-replace");
+const htmlbeautify = require("gulp-html-beautify");
 
 
 // 読み込み先（階層が間違えていると動かないので注意）
@@ -85,8 +86,18 @@ const ejs  = require('gulp-ejs');
 const compileHtml = () => {
   return src(srcPath.ejs) // 変換元を指定。!(_)はコンポーネントファイル（_header.ejsなど）以外の意味。
   .pipe( ejs( {title: 'gulp-ejs'} ) ) // ejsコンパイル実行 {}内で値を渡すことが可能
+  .pipe(
+    htmlbeautify({
+      indent_size: 2, //インデントサイズ
+      indent_char: " ", // インデントに使う文字列はスペース1こ
+      max_preserve_newlines: 1, // 許容する連続改行数
+      preserve_newlines: true, //コンパイル前のコードの改行
+      indent_inner_html: true, //head,bodyをインデント
+      extra_liners: [], // 終了タグの前に改行を入れるタグ。配列で指定。head,body,htmlにはデフォで改行を入れたくない場合は[]。
+    })
+  )
   .pipe(rename( { extname: ".html" } )) // コンパイルファイルの拡張子をhtmlに変更
-  .pipe(replace(/[\s\S]*?(<!DOCTYPE)/, "$1")) //冒頭の<!DOCTYPEまでの空白を全部取り除く
+//   .pipe(replace(/[\s\S]*?(<!DOCTYPE)/, "$1")) //冒頭の<!DOCTYPEまでの空白を全部取り除く
   .pipe( dest(destPath.ejs) ); // 出力先の指定
 }
 
@@ -116,7 +127,7 @@ const imgImagemin = () => {
 const watchFiles = () => {
     watch(srcPath.css, series(cssSass, browserSyncReload)) // src/sassフォルダ内の変更があったらcssにコンパイルして自動リロード
     watch(srcPath.img, series(imgImagemin, browserSyncReload)) // src/imagesフォルダ内の変更があったら画像圧縮して自動リロード
-    watch(srcPath.ejs, series(compileHtml,browserSyncReload)) //ejsファイルに変更があったら自動リロード
+    watch('./ejs', series(compileHtml,browserSyncReload)) //ejsフォルダ内に変更があったら自動リロード
     watch(srcPath.html, series(browserSyncReload)) //htmlファイルに変更があったら自動リロード
 }
 
