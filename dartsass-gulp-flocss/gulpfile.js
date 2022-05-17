@@ -77,8 +77,9 @@ const cssSass = () => {
         }))
 }
 
-// gulp-ejs
+/* --- gulp-ejs --- */
 const ejs  = require('gulp-ejs');
+// ejsファイルを htmlファイルに変換し出力 
 const compileHtml = () => {
   return src(srcPath.ejs) // 変換元を指定。!(_)はコンポーネントファイル（_header.ejsなど）以外の意味。
   .pipe( ejs( {title: 'gulp-ejs'} ) ) // ejsコンパイル実行 {}内で値を渡すことが可能
@@ -112,8 +113,8 @@ const imgImagemin = () => {
 const watchFiles = () => {
     watch(srcPath.css, series(cssSass, browserSyncReload)) // src/sassフォルダ内の変更があったらcssにコンパイルして自動リロード
     watch(srcPath.img, series(imgImagemin, browserSyncReload)) // src/imagesフォルダ内の変更があったら画像圧縮して自動リロード
+    watch(srcPath.ejs, series(compileHtml,browserSyncReload)) //ejsファイルに変更があったら自動リロード
     watch(srcPath.html, series(browserSyncReload)) //htmlファイルに変更があったら自動リロード
-    watch(srcPath.ejs, series(compileHtml,browserSyncReload)) //htmlファイルに変更があったら自動リロード
 }
 
 // 画像だけ削除
@@ -155,12 +156,12 @@ const clean = (done) => {
 
 exports.default = series(series(clean, cssSass, compileHtml, imgImagemin), parallel(watchFiles, browserSyncFunc));
 
-//series:順番に処理 series(clean, cssSass, imgImagemin)を処理してからparallel(watchFiles, browserSyncFunc))を開始してparallel内のwatchFiles, browserSyncFuncを同時進行で処理する
+//series:順番に処理 series(clean, cssSass, compileHtml, imgImagemin)を処理してからparallel(watchFiles, browserSyncFunc))を開始してparallel内のwatchFiles, browserSyncFuncを同時進行で処理する
 
-//順番的に 1.default実行→2.cleanで指定したパス(./images/)の中を削除→3.srcフォルダ内のsassフォルダの_scssファイルをコンパイルし,cssフォルダに出力→ 4.imgImagemin()で画像圧縮してimagesフォルダに出力  が終わったら 5.『監視ファイルの変更(_scss,画像,HTML)があったらcssへコンパイル,画像圧縮,変更後のHTMLをブラウザにリローデッド & ファイル(今回はhtml)を設定してローカルサーバー立ち上げてリロード』 
+//順番的に 1.default実行→2.cleanで指定したパス(./images/)の中を削除→3.srcフォルダ内のsassフォルダの_scssファイルをコンパイルし,cssフォルダに出力→ 4.compileHtmlで ejsファイルをhtmlファイルへ変換→ 5.imgImagemin()で画像圧縮してimagesフォルダに出力  が終わったら 6.『監視ファイルの変更(_scss,画像,HTML ejs)があったらcssへコンパイル,画像圧縮,変更後のHTMLをブラウザにリローデッド & ファイル(今回はhtml)を設定してローカルサーバー立ち上げてリロード』 
 
-/* --- *重要* 5のparallelで"watchFilesを同時にbrowserSyncFunc"に実行しないとリロードされない！！ 
-例えば、5をseriesにしてwatchFilesが完了してからbrowserSyncFuncを実行しようとしても、そもそもサーバーが立ち上がらない為、cssにコンパイルは出来るがブラウザにリロードは出来ない！！
+/* --- *重要* 6のparallelで"watchFilesを同時にbrowserSyncFunc"に実行しないとリロードされない！！ 
+例えば、6をseriesにしてwatchFilesが完了してからbrowserSyncFuncを実行しようとしても、そもそもサーバーが立ち上がらない為、cssにコンパイルは出来るがブラウザにリロードは出来ない！！
 また、順番を逆にすると、サーバーが立ち上がるがファイルの変更を変更を監視出来ていない為、画像圧縮もcssコンパイルのリロードが出来ないので、何も変化が無い状態になる。
 --- */
 
