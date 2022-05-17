@@ -2,6 +2,8 @@ const { src, dest, watch, series, parallel } = require("gulp");
 
 // 共通
 const rename = require("gulp-rename");
+const replace = require("gulp-replace");
+
 
 // 読み込み先（階層が間違えていると動かないので注意）
 const srcPath = {
@@ -84,6 +86,7 @@ const compileHtml = () => {
   return src(srcPath.ejs) // 変換元を指定。!(_)はコンポーネントファイル（_header.ejsなど）以外の意味。
   .pipe( ejs( {title: 'gulp-ejs'} ) ) // ejsコンパイル実行 {}内で値を渡すことが可能
   .pipe(rename( { extname: ".html" } )) // コンパイルファイルの拡張子をhtmlに変更
+  .pipe(replace(/[\s\S]*?(<!DOCTYPE)/, "$1")) //冒頭の<!DOCTYPEまでの空白を全部取り除く
   .pipe( dest(destPath.ejs) ); // 出力先の指定
 }
 

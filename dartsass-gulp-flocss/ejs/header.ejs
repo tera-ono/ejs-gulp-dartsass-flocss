@@ -1,13 +1,13 @@
+<% var title = 'EJSのタイトル' %>
+<% var hoge = 'booo' %>
+<% var tag = '<h2>ハロー</h2>' %>
 <!DOCTYPE html>
 <html lang="ja"">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <% var hoge = 'booo' %>
-</head>
+<%- include('common/_head.ejs'); %>
 <body>
   <h1><%- title %></h1>
-  <p><%- hoge %></p>
+  <h2><%= hoge %></h2>
+  <%- tag %>
+  <%= tag %>
 </body>
 </html>
